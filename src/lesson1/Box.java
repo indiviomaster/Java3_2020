@@ -10,9 +10,6 @@ public class Box<T extends Fruit> {
         return this.weight*this.inbox.size();
     }
 
-    /*public Box(){
-        inbox = new ArrayList <T>();
-    }*/
     public void add(T obj){
         this.inbox.add(obj);
         this.weight=obj.weight;
@@ -21,11 +18,10 @@ public class Box<T extends Fruit> {
     public boolean compare(Box<? extends Fruit> obj) {
         return Math.abs(this.getWeight()-obj.getWeight())<0.0001;
     }
-    public boolean pourFrom(Box<T> obj) {
+    public void pourFrom(Box<T> obj) {
 
         for(int i=obj.inbox.size();i>0;i--){
             this.inbox.add((T) obj.inbox.remove(i-1));
         }
-        return true;
     }
 }
