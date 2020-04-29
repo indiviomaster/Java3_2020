@@ -99,7 +99,7 @@ public class ClientHandler {
                 if(!myServer.isNickBusy(newNic)){
                 this.name = tokens[1];
                     myServer.sendMsgFromSrvToClient(oldNic,"/upnick "+name);
-                    myServer.sendMsgFromSrvToClient(oldNic,"Ник изменент на"+name);
+                    myServer.broadcastMsg("Ник: "+oldNic+" изменен на "+name);
                     myServer.changeClientNicName(oldNic, newNic);
                     myServer.broadcastClients();
                 }else{

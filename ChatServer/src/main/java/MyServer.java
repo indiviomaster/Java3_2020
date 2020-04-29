@@ -96,8 +96,6 @@ public class MyServer {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        /* Unknown how**/
-        broadcastClients();
     }
 
 }

@@ -21,7 +21,7 @@ public class BaseAuthService implements AuthService {
 
         Class.forName("org.sqlite.JDBC");
 
-        connection = DriverManager.getConnection("jdbc:sqlite:C:/sqllite/users.db");
+        connection = DriverManager.getConnection("jdbc:sqlite:users.db");
 
         statement = connection.createStatement();
         System.out.println("Сервис аутентификации запущен");
@@ -32,7 +32,6 @@ public class BaseAuthService implements AuthService {
         resultSet = statement.executeQuery("SELECT id, login, password, nick FROM user;");
         while (resultSet.next()) {
             userEntries.add(new UserEntry(resultSet.getInt("id"),resultSet.getString("login"), resultSet.getString("password"), resultSet.getString("nick")));
-            //System.out.println("Пользователь"+resultSet.getString("login")+" ID: "+resultSet.getInt("id") +" Pass: " + resultSet.getString("password")+" Nic: "+ resultSet.getString("nick")+"загружен");
         }
     }
 
