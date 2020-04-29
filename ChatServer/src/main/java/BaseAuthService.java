@@ -7,10 +7,13 @@ public class BaseAuthService implements AuthService {
     private static Connection connection;
     private static Statement statement;
 
-    public List<UserEntry> userEntries() {
+    public List<UserEntry> getUserEntries() {
         return userEntries;
     }
+    public void updateUserEntries(UserEntry entry) {
 
+        ;
+    }
     private List<UserEntry> userEntries;
     private ResultSet resultSet;
     @Override
@@ -53,6 +56,20 @@ public class BaseAuthService implements AuthService {
     }
 
     @Override
+    public String getNickById(Integer id){
+        for (UserEntry o : userEntries) {
+            if (o.getId() == id) return o.getNick();
+        }
+        return null;
+    }
+    @Override
+    public Integer getIdByNick(String nick){
+        for (UserEntry o : userEntries) {
+            if (o.getNick().equals(nick)) return o.getId();
+        }
+        return -1;
+    }
+    @Override
     public String getNickByLoginPass(String login, String pass) {
         for (UserEntry o : userEntries) {
             if (o.getLogin().equals(login) && o.getPass().equals(pass)) return o.getNick();
@@ -60,4 +77,14 @@ public class BaseAuthService implements AuthService {
         return null;
     }
 
-  }
+    @Override
+    public void updateUserData(String oldNic, String newNic) throws SQLException {
+        for (UserEntry o : userEntries) {
+            if (o.getNick().equals(oldNic)){
+                o.setNick(newNic);
+                System.out.println("Пользователь"+o.getLogin()+ " обновлен на ник:" + o.getNick());
+                statement.executeUpdate("UPDATE user SET nick = '"+o.getNick()+"' WHERE id = "+o.getId()+";");
+            }
+        }
+    }
+}

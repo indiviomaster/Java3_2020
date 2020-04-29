@@ -99,6 +99,9 @@ public class Controller implements Initializable {
                             {clientsList.getItems().add(tokens[i]);}
                         }
                     });
+                }else if(msg.startsWith("/upnick")){
+                    String[] tokens = msg.split("\\s");
+                    nickname = tokens[1];
                 }
 
             } else {

@@ -8,6 +8,7 @@ public class UserEntry {
     public int getId() {
         return id;
     }
+
     public String getLogin() {
         return login;
     }
@@ -20,7 +21,17 @@ public class UserEntry {
         return nick;
     }
 
+    public void setLogin(String login) {
+        this.login = login;
+    }
 
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
 
     public UserEntry(int id,String login, String pass, String nick) {
         this.id = id;

@@ -94,10 +94,18 @@ public class ClientHandler {
                 myServer.sendMsgToClient(name, nick, msg);
             } else if(strFromClient.startsWith("/chng")){
                 String[] tokens = strFromClient.split("\\s");
-                String nic = name;
+                String oldNic = name;
                 String newNic = tokens[1];
+                if(!myServer.isNickBusy(newNic)){
                 this.name = tokens[1];
-                myServer.bClients(this, newNic);
+                    myServer.sendMsgFromSrvToClient(oldNic,"/upnick "+name);
+                    myServer.sendMsgFromSrvToClient(oldNic,"Ник изменент на"+name);
+                    myServer.changeClientNicName(oldNic, newNic);
+                    myServer.broadcastClients();
+                }else{
+                    myServer.sendMsgFromSrvToClient(name,"Ник занят");
+                    System.out.println("Ник занят");
+                }
 
             }else{
                 myServer.broadcastMsg(name, strFromClient);

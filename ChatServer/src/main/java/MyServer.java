@@ -8,7 +8,7 @@ import java.util.Map;
 public class MyServer {
     private final int PORT = 8189;  
 
-    private Map<String, ClientHandler> clients;
+    private Map<Integer, ClientHandler> clients;
     private AuthService authService;
 
     public AuthService getAuthService() {
@@ -19,6 +19,7 @@ public class MyServer {
         try (ServerSocket server = new ServerSocket(PORT)) {
             authService = new BaseAuthService();
             authService.start();
+
 
 
             clients = new HashMap<>();
@@ -40,7 +41,8 @@ public class MyServer {
     }
 
     public synchronized boolean isNickBusy(String nick) {
-                return clients.containsKey(nick);
+
+        return clients.containsKey(authService.getIdByNick(nick));
     }
 
     public synchronized void broadcastMsg(String msg) {
@@ -53,10 +55,16 @@ public class MyServer {
     }
 
     public synchronized void sendMsgToClient(String from, String to, String msg) {
-        if (clients.containsKey(to)) {
-            clients.get(to).sendMsg(formatMessage(from, msg));
+        if (clients.containsKey(authService.getIdByNick(to))) {
+            clients.get(authService.getIdByNick(to)).sendMsg(formatMessage(from, msg));
         }
     }
+    public synchronized void sendMsgFromSrvToClient(String to, String msg){
+        if (clients.containsKey(authService.getIdByNick(to))) {
+            clients.get(authService.getIdByNick(to)).sendMsg(msg);
+        }
+    }
+
 
     public synchronized void unsubscribe(ClientHandler o) {
         clients.remove(o.getName());
@@ -64,7 +72,8 @@ public class MyServer {
     }
 
     public synchronized void subscribe(ClientHandler o) {
-        clients.put(o.getName(),o);
+
+        clients.put(authService.getIdByNick(o.getName()),o);
         broadcastClients();
     }
 
@@ -72,21 +81,23 @@ public class MyServer {
         return from + ": " + msg;
     }
 
-    public synchronized void bClients(ClientHandler ch, String newnic) {
-        clients.remove(ch.getName());
-        System.out.println("Клиент удален"+ch.getName());
-        clients.put(newnic,ch);
-        System.out.println("Клиент добавлен"+newnic);
-        broadcastClients();
-
-
-    }
 
     public synchronized void broadcastClients() {
         StringBuilder builder = new StringBuilder("/clients ");
-        for (String nick : clients.keySet()) {
-            builder.append(nick).append(' ');
+        for (Integer id : clients.keySet()) {
+            builder.append(authService.getNickById(id)).append(' ');
         }
         broadcastMsg(builder.toString());
     }
+
+    public void changeClientNicName(String oldNic, String newNic) {
+        try {
+            authService.updateUserData(oldNic,newNic);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        /* Unknown how**/
+        broadcastClients();
+    }
+
 }
