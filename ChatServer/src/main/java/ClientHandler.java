@@ -84,6 +84,7 @@ public class ClientHandler {
             String strFromClient = in.readUTF();
             System.out.println("от " + name + ": " + strFromClient);
             if (strFromClient.equals("/end")) {
+
                 return;
             }
 
@@ -122,6 +123,7 @@ public class ClientHandler {
     }
 
     public void closeConnection() {
+
         myServer.unsubscribe(this);
         myServer.broadcastMsg(name + " вышел из чата");
         try {

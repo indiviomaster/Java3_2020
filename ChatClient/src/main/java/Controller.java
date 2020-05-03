@@ -5,7 +5,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
+import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -64,8 +67,12 @@ public class Controller implements Initializable {
     }
 
     public void sendExit(){
+
+
         network.sendMsg("/end");
     }
+
+
 
     public void showAlert(String msg) {
         Platform.runLater(() -> {
@@ -83,6 +90,12 @@ public class Controller implements Initializable {
         network.setCallOnAuthenticated(args -> {
             setAuthenticated(true);
             nickname = args[0].toString();
+            textArea.clear();
+            try {
+                readFromFile(nickname);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
 
         network.setCallOnMsgReceived(args -> {
@@ -102,12 +115,54 @@ public class Controller implements Initializable {
                 }else if(msg.startsWith("/upnick")){
                     String[] tokens = msg.split("\\s");
                     nickname = tokens[1];
+                    try {
+                        readFromFile(nickname);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
             } else {
                 textArea.appendText(msg + "\n");
+                try {
+                    writeToFile(msg + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
+    }
+
+    private void writeToFile(String str) throws IOException{
+
+        File file =new File("data_"+nickname+".txt");
+        try(FileWriter fileWriter = new FileWriter(file,true)){
+            fileWriter.write(str);
+        }
+    }
+
+    private void readFromFile(String nickname) throws IOException {
+        textArea.clear();
+        File file =new File("data_"+nickname+".txt");
+        if(file.exists()) {
+            int count = 0;
+            List<String> listMsg = new ArrayList<>();
+            RandomAccessFile rafile = new RandomAccessFile(file, "r");
+            String line;
+            while ((line = rafile.readLine()) != null) {
+                listMsg.add(line);
+                count++;
+            }
+
+            if (count < 100) {
+                count = listMsg.size();
+            }
+
+            for (int i = listMsg.size() - 1; i >= (listMsg.size() - count); i--) {
+                textArea.appendText(listMsg.get(i) + "\n");
+            }
+            rafile.close();
+        }
     }
 
     private void clientClickHandler(MouseEvent event) {

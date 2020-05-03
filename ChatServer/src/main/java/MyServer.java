@@ -67,7 +67,8 @@ public class MyServer {
 
 
     public synchronized void unsubscribe(ClientHandler o) {
-        clients.remove(o.getName());
+
+        clients.remove(authService.getIdByNick(o.getName()));
         broadcastClients();
     }
 
@@ -97,5 +98,4 @@ public class MyServer {
             throwables.printStackTrace();
         }
     }
-
 }
