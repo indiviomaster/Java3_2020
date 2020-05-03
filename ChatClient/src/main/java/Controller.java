@@ -154,11 +154,7 @@ public class Controller implements Initializable {
                 count++;
             }
 
-            if (count < 100) {
-                count = listMsg.size();
-            }
-
-            for (int i = listMsg.size() - 1; i >= (listMsg.size() - count); i--) {
+            for (int i = ((listMsg.size() > 100) ? listMsg.size()-100:0) ; i< listMsg.size()  ; i++) {
                 textArea.appendText(listMsg.get(i) + "\n");
             }
             rafile.close();
