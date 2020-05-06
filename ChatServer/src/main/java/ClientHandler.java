@@ -11,6 +11,7 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     static final int TIME_OUT_TO_LOGIN = 120000;
+    ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     private String name;
 
@@ -25,7 +26,7 @@ public class ClientHandler {
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
             this.name = "";
-            ExecutorService executorService = Executors.newFixedThreadPool(2);
+
 
             //Timer close connection
             executorService.execute(new Runnable() {
@@ -54,12 +55,16 @@ public class ClientHandler {
                         e.printStackTrace();
                     } finally {
                         closeConnection();
+
                     }
                 }
             });
 
         } catch (IOException e) {
             throw new RuntimeException("Проблемы при создании обработчика клиента");
+        }
+        finally {
+            executorService.shutdown();
         }
     }
 
@@ -148,6 +153,7 @@ public class ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        executorService.shutdown();
     }
 
     public void closeConn() {
@@ -167,5 +173,9 @@ public class ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        executorService.shutdown();
+
     }
+
 }
