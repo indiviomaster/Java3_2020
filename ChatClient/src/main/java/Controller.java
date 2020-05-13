@@ -4,6 +4,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
+    private static final Logger LOGGER = LogManager.getLogger(Controller.class);
     @FXML
     TextArea textArea;
 
@@ -68,7 +71,7 @@ public class Controller implements Initializable {
 
     public void sendExit(){
 
-
+        LOGGER.info("Завершение сеанса командой /end");
         network.sendMsg("/end");
     }
 
@@ -77,7 +80,9 @@ public class Controller implements Initializable {
     public void showAlert(String msg) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+            LOGGER.info("Предупреждение: {}",msg);
             alert.showAndWait();
+
         });
     }
 
@@ -94,7 +99,8 @@ public class Controller implements Initializable {
             try {
                 readFromFile(nickname);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("Не удалось загрузить лог чата. {}",e);
+
             }
         });
 
@@ -102,6 +108,7 @@ public class Controller implements Initializable {
             String msg = args[0].toString();
             if (msg.startsWith("/")) {
                 if (msg.startsWith("/clients ")) {
+                    LOGGER.debug("Заполнение поля собеседников");
                     String[] tokens = msg.split("\\s");
 
                     Platform.runLater(() -> {
@@ -113,7 +120,9 @@ public class Controller implements Initializable {
                         }
                     });
                 }else if(msg.startsWith("/upnick")){
+
                     String[] tokens = msg.split("\\s");
+                    LOGGER.debug("Загрузка сообщений пользователя:{} после изменения ника на {}", nickname,tokens[1]);
                     nickname = tokens[1];
                     try {
                         readFromFile(nickname);
@@ -124,6 +133,7 @@ public class Controller implements Initializable {
 
             } else {
                 textArea.appendText(msg + "\n");
+                LOGGER.info("Получено сообщение: {}",msg);
                 try {
                     writeToFile(msg + "\n");
                 } catch (IOException e) {
@@ -158,6 +168,8 @@ public class Controller implements Initializable {
                 textArea.appendText(listMsg.get(i) + "\n");
             }
             rafile.close();
+        }else{
+            LOGGER.error("Файл: data_{}.txt не существует",nickname);
         }
     }
 
