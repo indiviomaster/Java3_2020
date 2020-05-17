@@ -1,37 +1,32 @@
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ReflectTest {
 
     static TestClass instClass;
-    public static void main(String[] args) {
-        Class cla = TestClass.class;
+
+    public static void start(Class theTestClass) throws RuntimeException {
 
         int countBeforeSuite = 0;
         int countAfterSuite = 0;
-        int countTest = 0;
+
         try {
-            instClass =  (TestClass)cla.newInstance();
+            instClass = (TestClass) theTestClass.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
-        for (Method method: cla.getDeclaredMethods()){
+        for (Method method: theTestClass.getDeclaredMethods()){
             if(method.isAnnotationPresent(BeforeSuite.class)){
                 countBeforeSuite++;
                 if(countBeforeSuite>1)
                 {
                     throw new RuntimeException("BeforeSuite не один");
                 }else{
-
-                   // System.out.println("Присутствует @BeforeSuite");
-                    // System.out.println("с методом:" + method.getReturnType() +" "+ method.getName());
-                    try {
+                   try {
                         method.invoke(instClass);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -41,20 +36,19 @@ public class ReflectTest {
                 }
             }
         }
-        Map<Integer, Method> map = new HashMap<Integer, Method>();
+        List<PriorityTest> listOfTest = new ArrayList<>();
 
-        for (Method method: cla.getDeclaredMethods()){
+        for (Method method: theTestClass.getDeclaredMethods()){
             if(method.isAnnotationPresent(Test.class)){
-
-                map.putIfAbsent(((Test)method.getAnnotation(Test.class)).priority(), method);
-
+                listOfTest.add(new PriorityTest(method,((Test)method.getAnnotation(Test.class)).priority()));
             }
-
         }
-        for(Integer key: map.keySet()){
-            //System.out.println(map.get(key).getReturnType()+map.get(key).getName());
+        listOfTest.sort(Comparator.comparing(PriorityTest::getPriority));
+
+        for(PriorityTest pt : listOfTest){
+
             try {
-                map.get(key).invoke(instClass);
+                pt.getMethod().invoke(instClass);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
@@ -62,15 +56,14 @@ public class ReflectTest {
             }
         }
 
-        for (Method method: cla.getDeclaredMethods()){
+        for (Method method: theTestClass.getDeclaredMethods()){
             if(method.isAnnotationPresent(AfterSuite.class)){
                 countAfterSuite++;
                 if(countAfterSuite>1)
                 {
                     throw new RuntimeException("AfterSuite не один");
                 }else{
-                   // System.out.println("Присутствует AfterSuite");
-                   // System.out.println("с методом:" + method.getReturnType() +" "+ method.getName());
+
                     try {
                         method.invoke(instClass);
                     } catch (IllegalAccessException e) {
