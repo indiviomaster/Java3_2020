@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -6,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MyServer {
+    private static final Logger LOGGER = LogManager.getLogger(MyServer.class);
     private final int PORT = 8189;  
 
     private Map<Integer, ClientHandler> clients;
@@ -19,20 +23,16 @@ public class MyServer {
         try (ServerSocket server = new ServerSocket(PORT)) {
             authService = new BaseAuthService();
             authService.start();
-
-
-
             clients = new HashMap<>();
 
             while (true) {
-                System.out.println("Сервер ожидает подключения");
+                LOGGER.info("Сервер ожидает подключения");
                 Socket socket = server.accept();
-
-                System.out.println("Клиент подключился");
                 new ClientHandler(this, socket);
+                //LOGGER.info("Клиент подключился");
             }
         } catch (IOException | SQLException | ClassNotFoundException e) {
-            System.out.println("Ошибка в работе сервера");
+            LOGGER.error("Ошибка в работе сервера",e);
         } finally {
             if (authService != null) {
                 authService.stop();
@@ -92,10 +92,11 @@ public class MyServer {
     }
 
     public void changeClientNicName(String oldNic, String newNic) {
-        try {
-            authService.updateUserData(oldNic,newNic);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+
+            try {
+                authService.updateUserData(oldNic,newNic);
+            } catch (SQLException throwables) {
+                LOGGER.error(throwables);
+            }
     }
 }

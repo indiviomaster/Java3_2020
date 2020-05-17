@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -5,6 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class Network implements Closeable {
+    private static final Logger LOGGER = LogManager.getLogger(Network.class);
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
@@ -34,8 +38,10 @@ public class Network implements Closeable {
         try {
             connect();
             out.writeUTF("/auth " + login + " " + password);
+            LOGGER.info("Отправлено: /auth {} {}", login,password);
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error("Ошибка авторизации");
         }
     }
 
@@ -65,6 +71,7 @@ public class Network implements Closeable {
                     }
                 } catch (IOException e) {
                     callOnException.callback("Соединение с сервером разорвано");
+                    LOGGER.error("Соединение с сервером разорвано",e);
                 } finally {
                     close();
                 }
@@ -72,20 +79,21 @@ public class Network implements Closeable {
             clientListenerThread.setDaemon(true);
             clientListenerThread.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка соединения",e);
         }
     }
 
     public boolean sendMsg(String msg) {
         if (out == null) {
             callOnException.callback("Соединение с сервером не установлено");
+            LOGGER.error("Соединение с сервером не установлено");
         }
 
         try {
             out.writeUTF(msg);
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка отправки сообщения",e);
             return false;
         }
     }
