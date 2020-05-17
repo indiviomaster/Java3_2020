@@ -2,6 +2,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ClientHandler {
     private MyServer myServer;
@@ -9,6 +11,7 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     static final int TIME_OUT_TO_LOGIN = 120000;
+    ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     private String name;
 
@@ -24,35 +27,44 @@ public class ClientHandler {
             this.out = new DataOutputStream(socket.getOutputStream());
             this.name = "";
 
-            new Thread(() -> {
 
-                try {
-                    Thread.sleep(TIME_OUT_TO_LOGIN);
-                    if(name=="") {
-                        System.out.println("Клиент отключен по таймауту");
-
-                        this.in.close();
-                        this.out.close();
-                        this.socket.close();
+            //Timer close connection
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(TIME_OUT_TO_LOGIN);
+                        if(name=="") {
+                            System.out.println("Клиент отключен по таймауту");
+                            closeConn();
+                            }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } catch (InterruptedException | IOException e) {
-                    e.printStackTrace();
                 }
+            });
 
-            }).start();
+            //Main thread
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        authentication();
+                        readMessages();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        closeConnection();
 
-            new Thread(() -> {
-                try {
-                    authentication();
-                    readMessages();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    closeConnection();
+                    }
                 }
-            }).start();
+            });
+
         } catch (IOException e) {
             throw new RuntimeException("Проблемы при создании обработчика клиента");
+        }
+        finally {
+            executorService.shutdown();
         }
     }
 
@@ -141,5 +153,29 @@ public class ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        executorService.shutdown();
     }
+
+    public void closeConn() {
+
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        executorService.shutdown();
+
+    }
+
 }
