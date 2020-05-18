@@ -4,7 +4,7 @@ import java.util.*;
 
 public class ReflectTest {
 
-    static TestClass instClass;
+    static Object instClass;
 
     public static void start(Class theTestClass) throws RuntimeException {
 
@@ -12,7 +12,7 @@ public class ReflectTest {
         int countAfterSuite = 0;
 
         try {
-            instClass = (TestClass) theTestClass.newInstance();
+            instClass = theTestClass.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
