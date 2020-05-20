@@ -1,8 +1,12 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BaseAuthService implements AuthService {
+    private static final Logger LOGGER = LogManager.getLogger(BaseAuthService.class);
     private static final String CON_STR = "";
     private static Connection connection;
     private static Statement statement;
@@ -24,7 +28,7 @@ public class BaseAuthService implements AuthService {
         connection = DriverManager.getConnection("jdbc:sqlite:users.db");
 
         statement = connection.createStatement();
-        System.out.println("Сервис аутентификации запущен");
+        LOGGER.info("Сервис аутентификации запущен");
         loadUsers();
     }
 
@@ -32,6 +36,7 @@ public class BaseAuthService implements AuthService {
         resultSet = statement.executeQuery("SELECT id, login, password, nick FROM user;");
         while (resultSet.next()) {
             userEntries.add(new UserEntry(resultSet.getInt("id"),resultSet.getString("login"), resultSet.getString("password"), resultSet.getString("nick")));
+            LOGGER.debug("пользователь {} добавлен в список зарегистрированных",resultSet.getString("nick"));
         }
     }
 
@@ -40,14 +45,16 @@ public class BaseAuthService implements AuthService {
         try {
             statement.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка БД", e);
         }
         try {
             connection.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("Ошибка закрытия соединения с БД", e);
+
         }
-        System.out.println("Сервис аутентификации остановлен");
+
+        LOGGER.info("Сервис аутентификации остановлен");
     }
 
     public BaseAuthService() {
@@ -59,6 +66,7 @@ public class BaseAuthService implements AuthService {
         for (UserEntry o : userEntries) {
             if (o.getId() == id) return o.getNick();
         }
+        LOGGER.debug("Пользовательс с ID: {} отсутствует",id);
         return null;
     }
     @Override
@@ -66,6 +74,7 @@ public class BaseAuthService implements AuthService {
         for (UserEntry o : userEntries) {
             if (o.getNick().equals(nick)) return o.getId();
         }
+        LOGGER.debug("Пользовательс с ником: {} отсутствует в списке",nick);
         return -1;
     }
     @Override
@@ -73,6 +82,7 @@ public class BaseAuthService implements AuthService {
         for (UserEntry o : userEntries) {
             if (o.getLogin().equals(login) && o.getPass().equals(pass)) return o.getNick();
         }
+        LOGGER.debug("Пользовательс с именем: {} и паролем:[{}] отсутствует в списке",login,pass);
         return null;
     }
 
@@ -81,7 +91,8 @@ public class BaseAuthService implements AuthService {
         for (UserEntry o : userEntries) {
             if (o.getNick().equals(oldNic)){
                 o.setNick(newNic);
-                System.out.println("Пользователь"+o.getLogin()+ " обновлен на ник:" + o.getNick());
+                //System.out.println("Пользователь: "+o.getLogin()+" обновил на ник: "+o.getNick());
+                LOGGER.info("Пользователь: {} обновил ник на: {}",o.getLogin(), o.getNick());
                 statement.executeUpdate("UPDATE user SET nick = '"+o.getNick()+"' WHERE id = "+o.getId()+";");
             }
         }
